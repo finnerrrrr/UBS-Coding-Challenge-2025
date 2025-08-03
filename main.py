@@ -1,13 +1,16 @@
 import re
 import google.generativeai as genai
     
-API_KEY = "API KEY HERE"
+API_KEY = "API KEY HERE"  # Replace with your actual API key
 
 genai.configure(api_key=API_KEY)
-
 model = genai.GenerativeModel("gemini-2.0-flash")
 
-def generate_regex(valid_strings, invalid_strings, max_length=20, max_attempts=10):
+
+def generate_gree_expression(valid_strings, invalid_strings, ):
+    max_length=20
+    max_attempts=20
+
     # Few-shot examples to guide the model
     few_shots = """
     Example 1:
@@ -76,23 +79,11 @@ def validate_regex(pattern, valid, invalid):
     return all(regex.fullmatch(s) for s in valid) and \
            all(not regex.fullmatch(s) for s in invalid)
 
-# if __name__ == "__main__":
-#     # Example inputs
-#     valid = ["abc1", "bbb1", "ccc1"]
-#     invalid = ["abc", "bbb", "ccc"]
 
-#     regex = generate_regex(valid, invalid)
+print(generate_gree_expression(['abc', 'def'], ['123', '456']))
+print(generate_gree_expression(['aaa', 'abb', 'acc'],['bbb', 'bcc', 'bca']))
+print(generate_gree_expression(['abc1', 'bbb1', 'ccc1'], ['abc', 'bbb', 'ccc']))
+print(generate_gree_expression(['abc-1', 'bbb-1', 'cde-1'], ['abc1', 'bbb1', 'cde1']))
+print(generate_gree_expression(["foo@abc.com", "bar@def.net"], ["baz@abc", "qux.com"]))
 
-#     if regex:
-#         print(f"Generated regex: {regex}")
-
-#         # Compile and test
-#         pattern = re.compile(regex)
-#         print("\nValidation:")
-#         for v in valid:
-#             print(f"Valid test '{v}':", bool(pattern.fullmatch(v)))
-#         for i in invalid:
-#             print(f"Invalid test '{i}':", bool(pattern.fullmatch(i)))
-#     else:
-#         print("Failed to generate a valid regex.")
-
+print(generate_gree_expression(['lmfao', 'lol', 'l'], ['akm', 'bmfao', 'rpk']))
