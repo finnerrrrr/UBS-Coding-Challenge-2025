@@ -4,7 +4,7 @@ import google.generativeai as genai
 API_KEY = "API KEY HERE"  # Replace with your actual API key
 
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 
 def generate_gree_expression(valid_strings, invalid_strings, ):
@@ -80,10 +80,14 @@ def validate_regex(pattern, valid, invalid):
            all(not regex.fullmatch(s) for s in invalid)
 
 
+# Practice Scrolls
 print(generate_gree_expression(['abc', 'def'], ['123', '456']))
 print(generate_gree_expression(['aaa', 'abb', 'acc'],['bbb', 'bcc', 'bca']))
 print(generate_gree_expression(['abc1', 'bbb1', 'ccc1'], ['abc', 'bbb', 'ccc']))
 print(generate_gree_expression(['abc-1', 'bbb-1', 'cde-1'], ['abc1', 'bbb1', 'cde1']))
 print(generate_gree_expression(["foo@abc.com", "bar@def.net"], ["baz@abc", "qux.com"]))
 
-print(generate_gree_expression(['lmfao', 'lol', 'l'], ['akm', 'bmfao', 'rpk']))
+# Additional Tests
+print(generate_gree_expression(['lmfao', 'lol', 'l8908'], ['a4o', 'bmfao', 'rpk']))
+print(generate_gree_expression(['ab_lo', 'jw_ni', '9_m32'], ['ab0lo', 'mm', 'abce*f']))
+print(generate_gree_expression(['www.ubs.com/sg/en', 'www.formula69.com', 'www.wikipedia.org', 'ww4.fmovies.co'], ['amazon.com', 'www.facebook']))
