@@ -1,93 +1,245 @@
+import os
 import re
+import pickle
+import numpy as np
+import faiss
 import google.generativeai as genai
-    
-API_KEY = "API KEY HERE"  # Replace with your actual API key
+import scrollvdb
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.5-flash")
+# --------------------------
+# 0) Configure Gemini Client
+# --------------------------
+genai.configure(api_key="API KEY HERE")  # Replace with your actual API key
 
+INDEX_FILE = "scrolls.index"
+META_FILE = "scrolls_meta.pkl"
 
-def generate_gree_expression(valid_strings, invalid_strings, ):
-    max_length=20
-    max_attempts=20
+# --------------------------
+# 1) Embedding Function
+# --------------------------
+def get_embedding(text: str) -> np.ndarray:
+    """Generate embeddings using Gemini's embedding model (Client API)."""
+    resp = genai.embed_content(
+        model="models/embedding-001",
+        content=text
+    )
+    return np.array(resp["embedding"], dtype=np.float32)
 
-    # Few-shot examples to guide the model
-    few_shots = """
-    Example 1:
-    Valid: ["abc", "def"]
-    Invalid: ["123", "456"]
-    Regex: ^\D+$
+# --------------------------
+# 2) VDB Load/Save
+# --------------------------
+def load_vdb():
+    """Load FAISS index and metadata (or initialize if missing)."""
+    if os.path.exists(INDEX_FILE) and os.path.exists(META_FILE):
+        index = faiss.read_index(INDEX_FILE)
+        with open(META_FILE, "rb") as f:
+            metadata = pickle.load(f)
+    else:
+        index = None
+        metadata = []
+    return index, metadata
 
-    Example 2:
-    Valid: ["abc-1", "bbb-1", "cde-1"]
-    Invalid: ["abc1", "bbb1", "cde1"]
-    Regex: ^.+-.+$
+def save_vdb(index, metadata):
+    """Persist FAISS index and metadata to disk."""
+    faiss.write_index(index, INDEX_FILE)
+    with open(META_FILE, "wb") as f:
+        pickle.dump(metadata, f)
 
-    Example 3:
-    Valid: ["aaa", "abb", "acc"]
-    Invalid: ["bbb", "bcc", "bca"]
-    Regex: ^[a].+$
+# -----------------------------------------------------------------------------
+# 4) Add Scroll to VDB (For continuous optimisation using output at runtime)
+# -----------------------------------------------------------------------------
+def add_scroll(valid_list, invalid_list, gree_expression):
+    """Add a new scroll to FAISS index, skipping duplicates."""
+    index, metadata = load_vdb()
 
-    Example 4:
-    Valid: ["foo@abc.com", "bar@def.net"]
-    Invalid: ["baz@abc", "qux.com"]
-    Regex: ^\D+@\w+\.\w+$
-    """
+    # Duplicate check
+    new_scroll = {
+        "valid": valid_list,
+        "invalid": invalid_list,
+        "gree_expression": gree_expression
+    }
+    if new_scroll in metadata:
+        print("Scroll already exists in VDB. Skipping addition.")
+        return  # Do not add duplicate
 
-    # Core prompt
-    base_prompt = f"""
-    Generate a regex (≤{max_length} chars) that matches ALL valid strings
-    and rejects ALL invalid strings. Always use ^ and $ anchors.
-    Do NOT include explanations, only output the regex itself.
+    # Add new scroll
+    text_repr = f"VALID:{valid_list} INVALID:{invalid_list}"
+    embedding = get_embedding(text_repr).reshape(1, -1)
+    faiss.normalize_L2(embedding)
 
-    Output format:
-    - Plain regex syntax (e.g., ^\\D+$ should be output as ^\D+$)
-    - DO NOT, I REPEAT DO NOT include extra escaping of backslashes
-    {few_shots}
+    index.add(embedding)
+    metadata.append(new_scroll)
+    save_vdb(index, metadata)
+    print("Scroll added to VDB.")
 
-    Now solve:
-    Valid: {valid_strings}
-    Invalid: {invalid_strings}
-    """
+# --------------------------
+# 5) Retrieve Shots
+# --------------------------
+def retrieve_shots(valids, invalids, k=3):
+    """Retrieve top-k similar scrolls from FAISS index."""
+    index, metadata = load_vdb()
+    if index is None or index.ntotal == 0:
+        return ""  # No scrolls yet
 
-    for attempt in range(max_attempts):
-        response = model.generate_content(base_prompt)
-        regex = response.text.strip().split("\n")[0]
+    query_txt = f"VALID:{valids} INVALID:{invalids}"
+    qemb = get_embedding(query_txt).reshape(1, -1)
+    faiss.normalize_L2(qemb)
+    _, I = index.search(qemb, k)
 
-        # Validate regex
-        try:
-            compiled = re.compile(regex)
-        except re.error:
-            base_prompt += f"\nInvalid regex generated: {regex}. Try again."
-            continue
+    shots = []
+    for i in I[0]:
+        scroll = metadata[i]
+        shots.append(f"""VALID: {scroll['valid']}
+INVALID: {scroll['invalid']}
+GREE_EXPRESSION: {scroll['gree_expression']}""")
+    return "\n\n".join(shots)
 
-        if (all(compiled.fullmatch(s) for s in valid_strings) and
-            all(not compiled.fullmatch(s) for s in invalid_strings) and
-            len(regex) <= max_length):
-            return regex  # Success
+# ---------------------------------------------------------------------------
+# 6) Validation Function for Auto-save of scrolls in generate_gree_expression
+# ---------------------------------------------------------------------------
 
-        # Feedback loop
-        base_prompt += f"\nRegex failed tests: {regex}. Improve it."
-
-    return None
-
-def validate_regex(pattern, valid, invalid):
+def validate_gree_expression(gree_expression, valid, invalid):
     try:
-        regex = re.compile(pattern)
+        regex = re.compile(gree_expression)
     except re.error:
         return False
     return all(regex.fullmatch(s) for s in valid) and \
            all(not regex.fullmatch(s) for s in invalid)
 
+# -------------------------------------------------------------------------------------
+# 7a) Generate Gree Expression with Gemini (Without additional feedback loop)
+# -------------------------------------------------------------------------------------
+# def generate_gree_expression(valids, invalids, max_attempts=20):
 
-# Practice Scrolls
-print(generate_gree_expression(['abc', 'def'], ['123', '456']))
-print(generate_gree_expression(['aaa', 'abb', 'acc'],['bbb', 'bcc', 'bca']))
-print(generate_gree_expression(['abc1', 'bbb1', 'ccc1'], ['abc', 'bbb', 'ccc']))
-print(generate_gree_expression(['abc-1', 'bbb-1', 'cde-1'], ['abc1', 'bbb1', 'cde1']))
-print(generate_gree_expression(["foo@abc.com", "bar@def.net"], ["baz@abc", "qux.com"]))
+#     """
+#     Generate a gree_expression using few-shot RAG with Gemini 
+#     Retries up to max_attempts times for failed attempts (No additional feedback for each failed attempt)
+#     """
+#     for attempt in range(max_attempts):
+       
+#         shots_text = retrieve_shots(valids, invalids)
 
-# Additional Tests
-print(generate_gree_expression(['lmfao', 'lol', 'l8908'], ['a4o', 'bmfao', 'rpk']))
-print(generate_gree_expression(['ab_lo', 'jw_ni', '9_m32'], ['ab0lo', 'mm', 'abce*f']))
-print(generate_gree_expression(['www.ubs.com/sg/en', 'www.formula69.com', 'www.wikipedia.org', 'ww4.fmovies.co'], ['amazon.com', 'www.facebook']))
+#         # Build prompt without feedback
+#         prompt = (
+#             "You’re a regex synthesizer. Given VALID & INVALID lists, output one regex (maximum length 20 characters) ONLY.\n\n"
+#             + shots_text
+#             + f"\n\nNOW:\nVALID: {valids}\nINVALID: {invalids}\nREGEX:"
+#         )
+
+#         # Generate gree_expression
+#         model = genai.GenerativeModel("gemini-2.0-flash")
+#         resp = model.generate_content(
+#             contents=prompt,
+#             generation_config={"temperature": 0}
+#         )
+
+#         gree_expression = resp.text.strip()
+
+#         # Validate gree_expression
+#         if validate_gree_expression(gree_expression, valids, invalids):
+#             add_scroll(valids, invalids, gree_expression)
+#             return gree_expression
+
+#     print(f"Failed to generate valid gree_expression after {max_attempts} attempts.")
+#     return  None
+
+# -------------------------------------------------------------------------------------
+# 7b) Generate Gree Expression with Gemini (With additional feedback loop)
+# -------------------------------------------------------------------------------------
+
+def generate_gree_expression(valids, invalids, max_attempts=20):
+    """
+    Generate a gree_expression using few-shot RAG with Gemini.
+    Retries up to max_attempts times for failed attempts (With additional feedback for each failed attempt)
+    """
+
+    # Start off with no feedback, will accumulate feedback for failed attempts
+    feedback = ""  
+
+    for attempt in range(max_attempts):
+        # Retrieve few-shot examples
+        shots_text = retrieve_shots(valids, invalids)
+
+        # Build prompt with feedback (if any)
+        prompt = (
+            "You’re a regex synthesizer. Given VALID & INVALID lists, output one regex (maximum length 20 characters) ONLY.\n\n"
+            + shots_text
+            + f"\n\nNOW:\nVALID: {valids}\nINVALID: {invalids}\n"
+        )
+        if feedback:
+            prompt += f"Previous attempt failed: {feedback}\n"
+        prompt += "REGEX:"
+
+        # Generate gree_expression
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        resp = model.generate_content(
+            contents=prompt,
+            generation_config={"temperature": 0}
+        )
+
+        gree_expression = resp.text.strip()
+
+        # Validate gree_expression
+        if validate_gree_expression(gree_expression, valids, invalids):
+            add_scroll(valids, invalids, gree_expression)
+            return gree_expression
+
+        # Update feedback for next attempt
+        feedback = (
+            "Previous attempt '{gree_expression}' failed. "
+            "Ensure the regex fully matches ALL valid strings and rejects ALL invalid strings. "
+            "Use ^ and $ anchors. Avoid partial matches or overly broad patterns."
+        )
+
+    print(f"Failed to generate valid gree_expression after {max_attempts} attempts.")
+    return None
+
+# --------------------------
+# Example usage
+# --------------------------
+
+# Initialize FAISS index and metadata (Only upon starting up)
+if not os.path.exists(INDEX_FILE) and not os.path.exists(META_FILE):
+    docs = []
+    for scroll in scrollvdb.SCROLLS:
+        # Create text representation
+        text = f"VALID:{scroll['valid']} INVALID:{scroll['invalid']}"
+        # Get embedding
+        embedding = get_embedding(text)
+        docs.append({
+            "embedding": embedding,
+            "valid": scroll["valid"],
+            "invalid": scroll["invalid"],
+            "gree_expression": scroll["gree_expression"]
+        })
+
+dimension = len(docs[0]["embedding"])
+index = faiss.IndexFlatIP(dimension)  # Inner product index
+
+# Normalize embeddings
+embeddings = np.stack([doc["embedding"] for doc in docs])
+faiss.normalize_L2(embeddings)
+index.add(embeddings)
+
+# Prepare metadata and save
+metadata = [
+    {"valid": doc["valid"], "invalid": doc["invalid"], "gree_expression": doc["gree_expression"]}
+    for doc in docs
+]
+save_vdb(index, metadata)
+
+
+# Generate Gree expressions for new valid/invalid sets
+
+# Example 1
+valids_eg1 = ['lmfao', 'lol', 'l8908']
+invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
+
+gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
+print("Generated Gree expression:", gree_expression_eg1) # Expected: ^l\w+$ (matches words starting with 'l' followed by any characters)
+
+# Example 2
+valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
+invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
+gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
+print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
