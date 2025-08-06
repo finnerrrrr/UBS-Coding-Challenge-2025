@@ -9,7 +9,7 @@ import scrollvdb
 # --------------------------
 # 0) Configure Gemini Client
 # --------------------------
-genai.configure(api_key="API KEY HERE")  # Replace with your actual API key
+genai.configure(api_key="AIzaSyAIzQ570Dr3ZOH81lqHqwIWg9LRYaJkuu0")  # Replace with your actual API key
 
 INDEX_FILE = "scrolls.index"
 META_FILE = "scrolls_meta.pkl"
@@ -232,14 +232,20 @@ save_vdb(index, metadata)
 # Generate Gree expressions for new valid/invalid sets
 
 # Example 1
-valids_eg1 = ['lmfao', 'lol', 'l8908']
-invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
+# valids_eg1 = ['lmfao', 'lol', 'l8908']
+# invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
 
-gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
-print("Generated Gree expression:", gree_expression_eg1) # Expected: ^l\w+$ (matches words starting with 'l' followed by any characters)
+# gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
+# print("Generated Gree expression:", gree_expression_eg1) # Expected: ^[l]\w+$ (matches words starting with 'l' followed by any characters)
 
-# Example 2
-valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
-invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
-gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
-print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
+# # Example 2
+# valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
+# invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
+# gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
+# print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
+
+# Example 3
+valids_eg3 = ["oh hell no", "whaaa at", " lol", "234 p"]
+invalids_eg3 = ["1223", "whatisit", "pl333", "f;/nsgafj"]
+gree_expression_eg3 = generate_gree_expression(valids_eg3, invalids_eg3)
+print("Generated Gree expression:", gree_expression_eg3) # Expected: ^.*\s.*$
