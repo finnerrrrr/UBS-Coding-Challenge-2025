@@ -75,7 +75,7 @@ def add_scroll(valid_list, invalid_list, gree_expression):
 # --------------------------
 # 5) Retrieve Shots
 # --------------------------
-def retrieve_shots(valids, invalids, k=3):
+def retrieve_shots(valids, invalids, k=4):
     """Retrieve top-k similar scrolls from FAISS index."""
     index, metadata = load_vdb()
     if index is None or index.ntotal == 0:
@@ -110,7 +110,7 @@ def validate_gree_expression(gree_expression, valid, invalid):
 # 7) Generate Gree Expression with Gemini (With additional feedback loop)
 # -------------------------------------------------------------------------------------
 
-def generate_gree_expression(valids, invalids, max_attempts=20):
+def generate_gree_expression(valids, invalids, max_attempts=10):
     """
     Generate a gree_expression using few-shot RAG with Gemini.
     Retries up to max_attempts times for failed attempts (With additional feedback for each failed attempt)
@@ -227,3 +227,12 @@ if not os.path.exists(INDEX_FILE) and not os.path.exists(META_FILE):
 # invalids_eg5 = ["A09l", "_a89s", "k v"]
 # gree_expression_eg5 = generate_gree_expression(valids_eg5, invalids_eg5)
 # print("Generated Gree expression:", gree_expression_eg5)  # Expected: 
+
+# Example X
+dic =     {
+        "valid": ["foo@abc.com", "bar@def.net"],
+        "invalid": ["baz@abc", "qux.com"],
+        "gree_expression": r"^\D+@\w+\.\w+$"
+    }
+gree_expression_X = generate_gree_expression(dic["valid"], dic["invalid"])
+print("Generated Gree expression:", gree_expression_X)  # Expected: ^\D+@\w+\.\w+$
