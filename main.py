@@ -9,7 +9,7 @@ import scrollvdb
 # --------------------------
 # 0) Configure Gemini Client
 # --------------------------
-genai.configure(api_key="API KEY HERE")  # Replace with your actual API key
+genai.configure(api_key="AIzaSyAIzQ570Dr3ZOH81lqHqwIWg9LRYaJkuu0")  # Replace with your actual API key
 
 INDEX_FILE = "scrolls.index"
 META_FILE = "scrolls_meta.pkl"
@@ -107,44 +107,7 @@ def validate_gree_expression(gree_expression, valid, invalid):
            all(not regex.fullmatch(s) for s in invalid)
 
 # -------------------------------------------------------------------------------------
-# 7a) Generate Gree Expression with Gemini (Without additional feedback loop)
-# -------------------------------------------------------------------------------------
-# def generate_gree_expression(valids, invalids, max_attempts=20):
-
-#     """
-#     Generate a gree_expression using few-shot RAG with Gemini 
-#     Retries up to max_attempts times for failed attempts (No additional feedback for each failed attempt)
-#     """
-#     for attempt in range(max_attempts):
-       
-#         shots_text = retrieve_shots(valids, invalids)
-
-#         # Build prompt without feedback
-#         prompt = (
-#             "You’re a regex synthesizer. Given VALID & INVALID lists, output one regex (maximum length 20 characters) ONLY.\n\n"
-#             + shots_text
-#             + f"\n\nNOW:\nVALID: {valids}\nINVALID: {invalids}\nREGEX:"
-#         )
-
-#         # Generate gree_expression
-#         model = genai.GenerativeModel("gemini-2.0-flash")
-#         resp = model.generate_content(
-#             contents=prompt,
-#             generation_config={"temperature": 0}
-#         )
-
-#         gree_expression = resp.text.strip()
-
-#         # Validate gree_expression
-#         if validate_gree_expression(gree_expression, valids, invalids):
-#             add_scroll(valids, invalids, gree_expression)
-#             return gree_expression
-
-#     print(f"Failed to generate valid gree_expression after {max_attempts} attempts.")
-#     return  None
-
-# -------------------------------------------------------------------------------------
-# 7b) Generate Gree Expression with Gemini (With additional feedback loop)
+# 7) Generate Gree Expression with Gemini (With additional feedback loop)
 # -------------------------------------------------------------------------------------
 
 def generate_gree_expression(valids, invalids, max_attempts=20):
@@ -177,21 +140,25 @@ def generate_gree_expression(valids, invalids, max_attempts=20):
             generation_config={"temperature": 0}
         )
 
-        gree_expression = resp.text.strip()
+        try:
+            if resp.parts:
+                gree_expression = resp.text.strip()
 
-        # Validate gree_expression
-        if validate_gree_expression(gree_expression, valids, invalids):
-            add_scroll(valids, invalids, gree_expression)
-            return gree_expression
+                if validate_gree_expression(gree_expression, valids, invalids):
+                    add_scroll(valids, invalids, gree_expression)
+                    return gree_expression
+                else:
+                    feedback = (
+                        f"'{gree_expression}' failed. Ensure it FULLY MATCHES all VALID strings and REJECTS all INVALID ones. "
+                        "Use ^ and $ anchors. Avoid partial matches or overgeneral patterns."
+                    )
+            else:
+                feedback = "Empty response from Gemini."
 
-        # Update feedback for next attempt
-        feedback = (
-            "Previous attempt '{gree_expression}' failed. "
-            "Ensure the regex fully matches ALL valid strings and rejects ALL invalid strings. "
-            "Use ^ and $ anchors. Avoid partial matches or overly broad patterns."
-        )
+        except Exception as e:
+            feedback = f"Error while processing model output: {str(e)}"
 
-    print(f"Failed to generate valid gree_expression after {max_attempts} attempts.")
+    print(f"❌ Failed to generate a valid gree_expression after {max_attempts} attempts.")
     return None
 
 # --------------------------
@@ -213,38 +180,50 @@ if not os.path.exists(INDEX_FILE) and not os.path.exists(META_FILE):
             "gree_expression": scroll["gree_expression"]
         })
 
-dimension = len(docs[0]["embedding"])
-index = faiss.IndexFlatIP(dimension)  # Inner product index
+    dimension = len(docs[0]["embedding"])
+    index = faiss.IndexFlatIP(dimension)  # Inner product index
 
-# Normalize embeddings
-embeddings = np.stack([doc["embedding"] for doc in docs])
-faiss.normalize_L2(embeddings)
-index.add(embeddings)
+    # Normalize embeddings
+    embeddings = np.stack([doc["embedding"] for doc in docs])
+    faiss.normalize_L2(embeddings)
+    index.add(embeddings)
 
-# Prepare metadata and save
-metadata = [
-    {"valid": doc["valid"], "invalid": doc["invalid"], "gree_expression": doc["gree_expression"]}
-    for doc in docs
-]
-save_vdb(index, metadata)
+    # Prepare metadata and save
+    metadata = [
+        {"valid": doc["valid"], "invalid": doc["invalid"], "gree_expression": doc["gree_expression"]}
+        for doc in docs
+    ]
+    save_vdb(index, metadata)
 
 
 # Generate Gree expressions for new valid/invalid sets
 
-# Example 1
-valids_eg1 = ['lmfao', 'lol', 'l8908']
-invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
-gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
-print("Generated Gree expression:", gree_expression_eg1) # Expected: ^[l]\w+$ (matches words starting with 'l' followed by any characters)
+# # Example 1
+# valids_eg1 = ['lmfao', 'lol', 'l8908']
+# invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
+# gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
+# print("Generated Gree expression:", gree_expression_eg1) # Expected: ^[l]\w+$ (matches words starting with 'l' followed by any characters)
 
-# Example 2
-valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
-invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
-gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
-print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
+# # Example 2
+# valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
+# invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
+# gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
+# print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
 
-# Example 3
-valids_eg3 = ["oh hell no", "whaaa at", " lol", "234 p"]
-invalids_eg3 = ["1223", "whatisit", "pl333", "f;/nsgafj"]
-gree_expression_eg3 = generate_gree_expression(valids_eg3, invalids_eg3)
-print("Generated Gree expression:", gree_expression_eg3) # Expected: ^.*\s.*$
+# # Example 3
+# valids_eg3 = ["oh hell no", "whaaa at", " lol", "234 p"]
+# invalids_eg3 = ["1223", "whatisit", "pl333", "f;/nsgafj"]
+# gree_expression_eg3 = generate_gree_expression(valids_eg3, invalids_eg3)
+# print("Generated Gree expression:", gree_expression_eg3) # Expected: ^.*\s.*$
+
+# # Example 4
+# valids_eg4 = ["haha", "1l1l", "xyxy", "z9z9", "hahahahahaha"]
+# invalids_eg4 = ["123123", "hahah", "A+A+A+", "aabb"]
+# gree_expression_eg4 = generate_gree_expression(valids_eg4, invalids_eg4)
+# print("Generated Gree expression:", gree_expression_eg4) # Expected: r"^(\w\w)\1+$"
+
+# # Example 5
+# valids_eg5 = ["", "973189", " 9"]  
+# invalids_eg5 = ["A09l", "_a89s", "k v"]
+# gree_expression_eg5 = generate_gree_expression(valids_eg5, invalids_eg5)
+# print("Generated Gree expression:", gree_expression_eg5)  # Expected: 

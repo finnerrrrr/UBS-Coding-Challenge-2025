@@ -62,9 +62,9 @@ SCROLLS = [
         "gree_expression": r"^\w+[!?\.]$"
     },
     {
-        "valid": ["192.168.0.1", "10.0.0.1"],
+        "valid": [".168.0.1", ".0.0.1", "..."],
         "invalid": ["192.168.0", "10.0.0.256"],
-        "gree_expression": r"^\d{1,3}(\.\d{1,3}){3}$"
+        "gree_expression": r"^\.(\d*\.){2}\d*$"
     },
     {
         "valid": ["[abc]", "[123]", "[xyz]"],
@@ -120,5 +120,42 @@ SCROLLS = [
         "valid": ["a1", "b2", "z9"],
         "invalid": ["1a", "2b", "9z"],
         "gree_expression": r"^[a-z]\d$"
+    }, 
+
+    # Added 070825 10:14AM (Variable length lists)
+    {
+        "valid": ["X"],
+        "invalid": ["x", "XX", "xX", "1"],
+        "gree_expression": r"^[A-Z]$"
+    },
+    {
+        "valid": ["#mid#"],
+        "invalid": ["#start", "end#", "##"],
+        "gree_expression": r"^#\w+#$"
+    },
+    {
+        "valid": ["a12", "b99", "z01", "k33"],
+        "invalid": ["aa1"],
+        "gree_expression": r"^[a-z]\d{2}$"
+    },
+    {
+        "valid": ["[]!@#)(_)", ".,<<:""''", "#$%&@*?!#", "|}{_-'+=^'}{", "( . )( . )"],
+        "invalid": ["Aa1"],
+        "gree_expression": r"^[^A-Za-z0-9]+$"
+    },
+    {
+        "valid": ["1234", "5678", "9012"],
+        "invalid": ["12345", "56789", "90123"],
+        "gree_expression": r"^\d{4}$"
+    },
+    {
+        "valid": ["hello world", "foo bar"],
+        "invalid": ["helloworld", "foobar"],
+        "gree_expression": r"^\w+\s\w+$"
+    },
+    {
+        "valid": ["fy98uDs9aidSk", "732qi$(ds/m", "jA84t5fk)+=1!", "lp@<>,./';:", "[]"],
+        "invalid": ["jsks,aceaoisasd~", " ", "safbhsvj~", "`adsdSDA)92"],
+        "gree_expression": r"^[^\s~`]+$"
     }
 ]
