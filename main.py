@@ -99,6 +99,8 @@ GREE_EXPRESSION: {scroll['gree_expression']}""")
 # ---------------------------------------------------------------------------
 
 def validate_gree_expression(gree_expression, valid, invalid):
+    if len(gree_expression) > 20:
+            return False
     try:
         regex = re.compile(gree_expression)
     except re.error:
@@ -111,6 +113,10 @@ def validate_gree_expression(gree_expression, valid, invalid):
 # -------------------------------------------------------------------------------------
 
 def generate_gree_expression(valids, invalids, max_attempts=10):
+    # If length of valid or invalid lists is greater than 20, reject and return None
+    if len(valids) > 20 or len(invalids) > 20:
+        print("❌ Valid or invalid lists exceed maximum length of 20. Please reduce the number of examples.")
+        return None
     """
     Generate a gree_expression using few-shot RAG with Gemini.
     Retries up to max_attempts times for failed attempts (With additional feedback for each failed attempt)
@@ -125,8 +131,10 @@ def generate_gree_expression(valids, invalids, max_attempts=10):
 
         # Build prompt with feedback (if any)
         prompt = (
-            "You’re a regex synthesizer. Given VALID & INVALID lists, output one regex (maximum length 20 characters) ONLY.\n\n"
+            "You’re a expert regex synthesizer. Given VALID & INVALID lists examples, output one regex (maximum length 20 characters) ONLY.\n\n"
+            + "### Examples:\n"
             + shots_text
+            + "### Now Synthesize:\n"
             + f"\n\nNOW:\nVALID: {valids}\nINVALID: {invalids}\n"
         )
         if feedback:
@@ -195,44 +203,30 @@ if not os.path.exists(INDEX_FILE) and not os.path.exists(META_FILE):
     ]
     save_vdb(index, metadata)
 
+# Testing
+listofdics = [
+        {
+            "valid": ["whaa at??!", "oh hell no!!!!!", " lol", "234 p"],
+            "invalid": ["1223", "whatisit", "pl333", "f;/nsgafj"],
+            "gree_expression": r"^.*\s.*$"
+        },
+        {
+            "valid": ["ver1.0", "app2.3", "mod3.9", "block4.5"],
+            "invalid": ["ver10", "app.3", "mod39", "block 4.5"],
+            "gree_expression": r"^\w+\d\.\d$"
+        },
+        {
+            "valid": ["lmfao", "lol", "l8908"],
+            "invalid": ["bmfao", "a4o", "rpk", "18908"],
+            "gree_expression": r"^[l]\w+$"
+        },
+        {
+            "valid": ["haha", "1l1l", "xyxy", "z9z9", "hahahahahaha"],
+            "invalid": ["123123", "hahah", "A+A+A+", "aabb"],
+            "gree_expression": r"^(\w\w)\1+$"
+        }  
+    ]
 
-# Generate Gree expressions for new valid/invalid sets
-
-# # Example 1
-# valids_eg1 = ['lmfao', 'lol', 'l8908']
-# invalids_eg1 = ['bmfao', 'a4o', 'rpk', "18908"]
-# gree_expression_eg1 = generate_gree_expression(valids_eg1, invalids_eg1)
-# print("Generated Gree expression:", gree_expression_eg1) # Expected: ^[l]\w+$ (matches words starting with 'l' followed by any characters)
-
-# # Example 2
-# valids_eg2 = ["ver1.0", "app2.3", "mod3.9", "block4.5"]
-# invalids_eg2 = ["ver10", "app.3", "mod39", "block 4.5"]
-# gree_expression_eg2 = generate_gree_expression(valids_eg2, invalids_eg2)
-# print("Generated Gree expression:", gree_expression_eg2) # Expected: ^\w+\d\.\d$
-
-# # Example 3
-# valids_eg3 = ["oh hell no", "whaaa at", " lol", "234 p"]
-# invalids_eg3 = ["1223", "whatisit", "pl333", "f;/nsgafj"]
-# gree_expression_eg3 = generate_gree_expression(valids_eg3, invalids_eg3)
-# print("Generated Gree expression:", gree_expression_eg3) # Expected: ^.*\s.*$
-
-# # Example 4
-# valids_eg4 = ["haha", "1l1l", "xyxy", "z9z9", "hahahahahaha"]
-# invalids_eg4 = ["123123", "hahah", "A+A+A+", "aabb"]
-# gree_expression_eg4 = generate_gree_expression(valids_eg4, invalids_eg4)
-# print("Generated Gree expression:", gree_expression_eg4) # Expected: r"^(\w\w)\1+$"
-
-# # Example 5
-# valids_eg5 = ["", "973189", " 9"]  
-# invalids_eg5 = ["A09l", "_a89s", "k v"]
-# gree_expression_eg5 = generate_gree_expression(valids_eg5, invalids_eg5)
-# print("Generated Gree expression:", gree_expression_eg5)  # Expected: 
-
-# Example X
-dic =     {
-        "valid": ["foo@abc.com", "bar@def.net"],
-        "invalid": ["baz@abc", "qux.com"],
-        "gree_expression": r"^\D+@\w+\.\w+$"
-    }
-gree_expression_X = generate_gree_expression(dic["valid"], dic["invalid"])
-print("Generated Gree expression:", gree_expression_X)  # Expected: ^\D+@\w+\.\w+$
+for dic in listofdics:
+    gree_expression_X = generate_gree_expression(dic["valid"], dic["invalid"])
+    print("Generated Gree expression:", gree_expression_X)  
