@@ -24,9 +24,7 @@ SCROLLS = [
         "invalid": ["baz@abc", "qux.com"],
         "gree_expression": r"^\D+@\w+\.\w+$"
     },
-    # Added 070825 2:43AM
-
-    { #6: start with underscore
+    { # start with underscore
         "valid": ["_start", "_init", "_config"],
         "invalid": ["start_", "init_", "config"],
         "gree_expression": r"^_\w+$"
@@ -41,27 +39,22 @@ SCROLLS = [
         "invalid": ["01-01-2023", "12/31/1999"],
         "gree_expression": r"^\d{4}-\d{2}-\d{2}$"
     },
-    { #9: specific character & digit pattern 
+    { # specific character & digit pattern 
         "valid": ["a1b2c3", "x9y8z7"],
         "invalid": ["abc123", "123abc"],
         "gree_expression": r"^([a-z]\d){3}$"
     },
-    { # underscore between words                            -- REDUNDANT: covered in #6 -- 
-        "valid": ["a_b", "x_y", "i_o"],
-        "invalid": ["ab", "xy", "io"],
-        "gree_expression": r"^[a-z]_[a-z]$"
-    },
-    { #11: capitalised words 
+    { # capitalised words 
         "valid": ["John", "Alice", "Zack"],
         "invalid": ["john", "alice", "zack"],
         "gree_expression": r"^[A-Z][a-z]+$"
     },
-    { # punctuation at the end                             -- REDUNDANT: covered in #5 -- 
+    { # punctuation at the end                            
         "valid": ["car!", "go?", "yes."],
         "invalid": ["car"],
         "gree_expression": r"^\w+[!?\.]$"
     },
-    { # 13 set number of punctuation characters
+    { # set number of punctuation characters
         "valid": [".168.0.1", ".0.0.1", "..."],
         "invalid": ["192.168.0", "10.0.0.256"],
         "gree_expression": r"^\.(\d*\.){2}\d*$"
@@ -76,15 +69,10 @@ SCROLLS = [
         "invalid": ["abc def", "foo bar"],
         "gree_expression": r"^\w+_\w+$"
     },
-    { # position of specific characters                             -- REDUNDANT: covered in #13 --  
-        "valid": ["$100", "$5", "$0.99"],
-        "invalid": ["100$", "5$", "0.99$"],
-        "gree_expression": r"^\$\d+(\.\d{2})?$"
-    },
-    { # capitalised words at specific position                  -- REDUNDANT: covered in #11 --
+    { # capitalised words at specific position
         "valid": ["xXx", "aAa", "bBb"],
         "invalid": ["xxx", "aaa", "bbb"],
-        "gree_expression": r"^[a-z][A-Z][a-z]$" # this should be changed to be broader e.g \D or \w
+        "gree_expression": r"^\w[A-Z]\w$" 
     },
     { # pattern of digits and letters 
         "valid": ["pass1234", "code5678"],
@@ -95,11 +83,6 @@ SCROLLS = [
         "valid": ["A1B2C3", "X9Y8Z7"],
         "invalid": ["ABC123", "123ABC"],
         "gree_expression": r"^([A-Z]\d){3}$"
-    },
-    {
-        "valid": ["abc.com", "site.net", "host.org"],
-        "invalid": ["abccom", "sitenet", "hostorg"],
-        "gree_expression": r"^\w+\.(com|net|org)$"
     },
     {
         "valid": ["(123)", "(abc)", "(xyz)"],
@@ -121,8 +104,6 @@ SCROLLS = [
         "invalid": ["1a", "2b", "9z"],
         "gree_expression": r"^[a-z]\d$"
     }, 
-
-    # Added 070825 10:14AM 
     {
         # Valid strings must be exactly one uppercase letter
         "valid": ["X"],
@@ -139,7 +120,7 @@ SCROLLS = [
         # The last two characters of all valid strings must be digits
         "valid": ["a12", "b99", "z01", "k33"],
         "invalid": ["aa1"],
-        "gree_expression": r"^[a-z]\d{2}$" #r"^\w\d{2}$"
+        "gree_expression": r"^\w\d{2}$"
     },
     {
         # All valid strings cannot contain any digits or letters, but can contain special characters
@@ -165,8 +146,6 @@ SCROLLS = [
         "invalid": ["jsks,aceaoisasd~", " ", "safbhsvj~", "`adsdSDA)92"],
         "gree_expression": r"^[^\s~`]+$"
     },
-    
-    # Added 080825 11:43AM 
     {
         # No vowels (a, e, i, o, u, A, E, I, O，U) in the string
         "valid": ["FyL%Qscnjldfs", "g|rwdjsltxzb214[w.", "v 002177", "          \n        "],
@@ -214,7 +193,7 @@ SCROLLS = [
         "invalid": ["Billy: (555)555-1234"],
         "gree_expression": r"^[^:]+: [^()]+$" 
     },
-    { # forward slash 
+    { 
         "valid": ["(a1\n1\n1\n)", "\\Keyboard\\", "Goo Goo\n\rGa Ga "],
         "invalid": ["Billy: (555)555-1234"],
         "gree_expression": r"^(?:[^)]|\D\))*$"
