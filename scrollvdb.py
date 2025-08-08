@@ -91,7 +91,6 @@ SCROLLS = [
         "invalid": ["pass", "1234", "code"],
         "gree_expression": r"^[a-z]+[0-9]{4}$"
     },
-    { # same one
     {
         "valid": ["A1B2C3", "X9Y8Z7"],
         "invalid": ["ABC123", "123ABC"],
@@ -125,36 +124,43 @@ SCROLLS = [
 
     # Added 070825 10:14AM 
     {
+        # Valid strings must be exactly one uppercase letter
         "valid": ["X"],
         "invalid": ["x", "XX", "xX", "1"],
         "gree_expression": r"^[A-Z]$"
     },
     {
+        # Valid strings must start with a must start and end with a hash (#) character
         "valid": ["#mid#"],
         "invalid": ["#start", "end#", "##"],
         "gree_expression": r"^#\w+#$"
     },
     {
+        # The last two characters of all valid strings must be digits
         "valid": ["a12", "b99", "z01", "k33"],
         "invalid": ["aa1"],
-        "gree_expression": r"^[a-z]\d{2}$"
+        "gree_expression": r"^[a-z]\d{2}$" #r"^\w\d{2}$"
     },
     {
-        "valid": ["[]!@#)(_)", ".,<<:""''", "#$%&@*?!#", "|}{_-'+=^'}{", "( . )( . )"],
+        # All valid strings cannot contain any digits or letters, but can contain special characters
+        "valid": ["[]!@#)(_)", ".,<<:""''", "#$%&@*?!#", "|}{_-'+=^'}{", "( # )( # )"],
         "invalid": ["Aa1"],
         "gree_expression": r"^[^A-Za-z0-9]+$"
     },
     {
+        # Valid strings contain digits only and must be exactly 4 characters long
         "valid": ["1234", "5678", "9012"],
         "invalid": ["12345", "56789", "90123"],
         "gree_expression": r"^\d{4}$"
     },
     {
+        # All valid strings contain a whitespace character (Not at the start or end)
         "valid": ["hello world", "foo bar"],
         "invalid": ["helloworld", "foobar"],
         "gree_expression": r"^\w+\s\w+$"
     },
     {
+        # Valid strings cannot contain '~', '`', or whitespace characters`
         "valid": ["fy98uDs9aidSk", "732qi$(ds/m", "jA84t5fk)+=1!", "lp@<>,./';:", "[]"],
         "invalid": ["jsks,aceaoisasd~", " ", "safbhsvj~", "`adsdSDA)92"],
         "gree_expression": r"^[^\s~`]+$"
