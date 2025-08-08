@@ -10,6 +10,10 @@ LLM (Gemini): synthesize a candidate regex from those shots.
 
 Auto-validation & feedback: locally test; on failure, retry with concise feedback; on success, store the new scroll to improve future retrieval.
 
+#### Note: 
+
+This code is not optimised for latency, it focuses more on accuracy and consistency of results. Thus, it might take awhile it run. 
+
 ## Methods used
 Vector retrieval: IndexFlatIP on L2-normalized embeddings (cosine similarity).
 
@@ -64,7 +68,7 @@ gree = generate_gree_expression(valids, invalids, max_attempts=20)
 print("Generated:", gree)
 
 
-## How it works (quick)
+## How it works 
 
 Embed query: VALID:[...] INVALID:[...] → models/embedding-001.
 
