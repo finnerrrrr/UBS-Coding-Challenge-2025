@@ -28,7 +28,7 @@ scrollvdb.py — seed examples (SCROLLS) used to initialize the index on first r
 
 Generated on first run: scrolls.index, scrolls_meta.pkl.
 
-### Setup
+## Setup
 1) Install deps
 bash
 Copy
@@ -37,27 +37,35 @@ pip install google-generativeai faiss-cpu numpy
 bash
 Copy
 
-macOS/Linux
+#### macOS/Linux
 export GEMINI_API_KEY="YOUR_KEY"
 
-Windows PowerShell
+#### Windows PowerShell
 $env:GEMINI_API_KEY="YOUR_KEY"
 
-### Running
+## Running
+
 bash
+
 Copy
+
 python main.py
+
 On first run, FAISS is seeded from scrollvdb.SCROLLS and index files are created.
 
-To test custom cases, call:
+### To test custom cases, call:
 
 python
-Copy
-gree = generate_gree_expression(valids, invalids, max_attempts=20)
-print("Generated:", gree)
-(Examples are commented at the bottom of main.py.)
 
-How it works (quick)
+Copy
+
+gree = generate_gree_expression(valids, invalids, max_attempts=20)
+
+print("Generated:", gree)
+
+
+## How it works (quick)
+
 Embed query: VALID:[...] INVALID:[...] → models/embedding-001.
 
 Retrieve shots: top-k nearest scrolls from FAISS.
@@ -70,7 +78,8 @@ Feedback loop: on failure, retry with brief, explicit feedback (≤ max_attempts
 
 Persist: on success, append new scroll to FAISS + metadata.
 
-### Troubleshooting
+## Troubleshooting
+
 Empty/failed LLM response: check GEMINI_API_KEY and network; re-run.
 
 FAISS empty/corrupt: delete scrolls.index / scrolls_meta.pkl to reseed.
