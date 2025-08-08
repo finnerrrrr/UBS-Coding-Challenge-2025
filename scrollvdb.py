@@ -102,7 +102,7 @@ SCROLLS = [
     {
         "valid": ["a1", "b2", "z9"],
         "invalid": ["1a", "2b", "9z"],
-        "gree_expression": r"^[a-z]\d$"
+        "gree_expression": r"^\D\d$"
     }, 
     {
         # Valid strings must be exactly one uppercase letter
