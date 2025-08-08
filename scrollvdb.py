@@ -91,7 +91,7 @@ SCROLLS = [
         "invalid": ["pass", "1234", "code"],
         "gree_expression": r"^[a-z]+[0-9]{4}$"
     },
-    { # 
+    { # same one
         "valid": ["A1B2C3", "X9Y8Z7"],
         "invalid": ["ABC123", "123ABC"],
         "gree_expression": r"^([A-Z]\d){3}$"
