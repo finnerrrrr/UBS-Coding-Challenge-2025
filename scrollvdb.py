@@ -25,72 +25,73 @@ SCROLLS = [
         "gree_expression": r"^\D+@\w+\.\w+$"
     },
     # Added 070825 2:43AM
-    {
+
+    { #6: start with underscore
         "valid": ["_start", "_init", "_config"],
         "invalid": ["start_", "init_", "config"],
         "gree_expression": r"^_\w+$"
     },
-    {
+    { # non-digit followed by digit
         "valid": ["hello123", "test456", "data789"],
         "invalid": ["123hello", "456test", "789data"],
         "gree_expression": r"^[A-Za-z]+\d+$"
     },
-    {
+    { # set number & format of characters / digits 
         "valid": ["2023-01-01", "1999-12-31"],
         "invalid": ["01-01-2023", "12/31/1999"],
         "gree_expression": r"^\d{4}-\d{2}-\d{2}$"
     },
-    {
+    { #9: specific character & digit pattern 
         "valid": ["a1b2c3", "x9y8z7"],
         "invalid": ["abc123", "123abc"],
         "gree_expression": r"^([a-z]\d){3}$"
     },
-    {
+    { # underscore between words                            -- REDUNDANT: covered in #6 -- 
         "valid": ["a_b", "x_y", "i_o"],
         "invalid": ["ab", "xy", "io"],
         "gree_expression": r"^[a-z]_[a-z]$"
     },
-    {
+    { #11: capitalised words 
         "valid": ["John", "Alice", "Zack"],
         "invalid": ["john", "alice", "zack"],
         "gree_expression": r"^[A-Z][a-z]+$"
     },
-    {
+    { # punctuation at the end                             -- REDUNDANT: covered in #5 -- 
         "valid": ["car!", "go?", "yes."],
         "invalid": ["car"],
         "gree_expression": r"^\w+[!?\.]$"
     },
-    {
+    { # 13 set number of punctuation characters
         "valid": [".168.0.1", ".0.0.1", "..."],
         "invalid": ["192.168.0", "10.0.0.256"],
         "gree_expression": r"^\.(\d*\.){2}\d*$"
     },
-    {
+    { # position of specific characters 
         "valid": ["[abc]", "[123]", "[xyz]"],
         "invalid": ["abc", "123", "xyz"],
         "gree_expression": r"^\[\w+\]$"
     },
-    {
+    { # underscore between words                             -- REDUNDANT: covered in #6 --  
         "valid": ["abc_def", "foo_bar"],
         "invalid": ["abc def", "foo bar"],
         "gree_expression": r"^\w+_\w+$"
     },
-    {
+    { # position of specific characters                             -- REDUNDANT: covered in #13 --  
         "valid": ["$100", "$5", "$0.99"],
         "invalid": ["100$", "5$", "0.99$"],
         "gree_expression": r"^\$\d+(\.\d{2})?$"
     },
-    {
+    { # capitalised words at specific position                  -- REDUNDANT: covered in #11 --
         "valid": ["xXx", "aAa", "bBb"],
         "invalid": ["xxx", "aaa", "bbb"],
-        "gree_expression": r"^[a-z][A-Z][a-z]$"
+        "gree_expression": r"^[a-z][A-Z][a-z]$" # this should be changed to be broader e.g \D or \w
     },
-    {
+    { # pattern of digits and letters 
         "valid": ["pass1234", "code5678"],
         "invalid": ["pass", "1234", "code"],
         "gree_expression": r"^[a-z]+[0-9]{4}$"
     },
-    {
+    { # 
         "valid": ["A1B2C3", "X9Y8Z7"],
         "invalid": ["ABC123", "123ABC"],
         "gree_expression": r"^([A-Z]\d){3}$"
@@ -199,7 +200,7 @@ SCROLLS = [
         "invalid": ["Billy: (555)555-1234"],
         "gree_expression": r"^[^:]+: [^()]+$"
     },
-    {
+    { # forward slash 
         "valid": ["(a1\n1\n1\n)", "\\Keyboard\\", "Goo Goo\n\rGa Ga "],
         "invalid": ["Billy: (555)555-1234"],
         "gree_expression": r"^(?:[^)]|\D\))*$"
