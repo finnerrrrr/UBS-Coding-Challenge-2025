@@ -92,6 +92,7 @@ SCROLLS = [
         "gree_expression": r"^[a-z]+[0-9]{4}$"
     },
     { # same one
+    {
         "valid": ["A1B2C3", "X9Y8Z7"],
         "invalid": ["ABC123", "123ABC"],
         "gree_expression": r"^([A-Z]\d){3}$"
@@ -161,44 +162,51 @@ SCROLLS = [
     
     # Added 080825 11:43AM 
     {
+        # No vowels (a, e, i, o, u, A, E, I, O，U) in the string
         "valid": ["FyL%Qscnjldfs", "g|rwdjsltxzb214[w.", "v 002177", "          \n        "],
         "invalid": ["iatedonut", "IOU"],
         "gree_expression": r"^[^aeiouAEIOU]*$" 
     },
     {
+        # Each valid string contains a repeating pattern (minimum twice) of at least 4 characters
         "valid": ["+-*/=+-*/=+-*/=", "432k432k", "FUNnyFUNny"],
         "invalid": ["hahahahaha","wowwow", "i0"],
         "gree_expression": r"^(.{4,})\1+$"
     },
     {
         "valid": ["I like 海底捞火锅。", "ü -> lol00456", ":nñIIagree"], 
-        "invalid": ["haa:","::", "i0/sadw%al':/"], 
+        "invalid": ["haa:","::l", "i0/sadw%al':/"], 
         "gree_expression": r"^.*[^\W\d_].*[^:/]$"
     },
     {
+        # Any string that does not contain the words "eat" or "chair"
         "valid": ["I", "love", "eating", "food"],
         "invalid": ["eat", "chair"],
         "gree_expression": r"^(?!eat$|chair$).+$"
     },
     {
-        "valid": ["هاهاها", "𓀐𓂸 (:^O", "aka哈哈akah"],
+        # Any string that contains at least one non-ASCII character (includes characters from languages like Chinese, Arabic, etc.)
+        "valid": ["هاهاها", "𓀐𓀢 (:^O", "aka哈哈akah"],
         "invalid": ["Helicopter", "hehehe >:^)"],
-        "gree_expression": r"^.*[^\x00-\x7F].*$"
+        "gree_expression": r"^.*[^\x00-\x7F].*$" 
     },
     {
+        # Any string that contains at least one digit followed by a hyphen or a hyphen followed by a digit
         "valid": ["1трыугс3-Фхиеща2", "5سل2-ام0", "8Xin-8chào8"],
         "invalid": ["3oühh-lalala44"],
         "gree_expression": r"^.*(?:\d-|-\d).*$"
     },
     {
+        # Exactly one Chinese–Japanese–Korean unified ideograph character (any character in the Unicode range U+4E00 to U+9FFF)
         "valid": ["一", "二", "三"],
         "invalid": ["1", "one", "ഹലോ"],
-        "gree_expression": r"^[\u4e00-\u9fff]$"
+        "gree_expression": r"^[\u4e00-\u9fff]$" 
     },
     {
+        # Any character except colon, followed by a colon and space, then any character except parentheses
         "valid": ["Tel: +69 8123 4567", "Huatline: 88888888 "],
         "invalid": ["Billy: (555)555-1234"],
-        "gree_expression": r"^[^:]+: [^()]+$"
+        "gree_expression": r"^[^:]+: [^()]+$" 
     },
     { # forward slash 
         "valid": ["(a1\n1\n1\n)", "\\Keyboard\\", "Goo Goo\n\rGa Ga "],

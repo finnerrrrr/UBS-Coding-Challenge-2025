@@ -205,28 +205,33 @@ if not os.path.exists(INDEX_FILE) and not os.path.exists(META_FILE):
 
 # Testing
 listofdics = [
+        # {
+        #     "valid": ["whaa at??!", "oh hell no!!!!!", " lol", "234 p"],
+        #     "invalid": ["1223", "whatisit", "pl333", "f;/nsgafj"],
+        #     "gree_expression": r"^.*\s.*$"
+        # },
+        # {
+        #     "valid": ["ver1.0", "app2.3", "mod3.9", "block4.5"],
+        #     "invalid": ["ver10", "app.3", "mod39", "block 4.5"],
+        #     "gree_expression": r"^\w+\d\.\d$"
+        # },
+        # {
+        #     "valid": ["lmfao", "lol", "l8908"],
+        #     "invalid": ["bmfao", "a4o", "rpk", "18908"],
+        #     "gree_expression": r"^[l]\w+$"
+        # },
+        # {
+        #     "valid": ["haha", "1l1l", "xyxy", "z9z9", "hahahahahaha"],
+        #     "invalid": ["123123", "hahah", "A+A+A+", "aabb"],
+        #     "gree_expression": r"^(\w\w)\1+$"
+        # },
         {
-            "valid": ["whaa at??!", "oh hell no!!!!!", " lol", "234 p"],
-            "invalid": ["1223", "whatisit", "pl333", "f;/nsgafj"],
-            "gree_expression": r"^.*\s.*$"
-        },
-        {
-            "valid": ["ver1.0", "app2.3", "mod3.9", "block4.5"],
-            "invalid": ["ver10", "app.3", "mod39", "block 4.5"],
-            "gree_expression": r"^\w+\d\.\d$"
-        },
-        {
-            "valid": ["lmfao", "lol", "l8908"],
-            "invalid": ["bmfao", "a4o", "rpk", "18908"],
-            "gree_expression": r"^[l]\w+$"
-        },
-        {
-            "valid": ["haha", "1l1l", "xyxy", "z9z9", "hahahahahaha"],
-            "invalid": ["123123", "hahah", "A+A+A+", "aabb"],
-            "gree_expression": r"^(\w\w)\1+$"
-        }  
+            "valid": ["gogogo", "world", "worororo"],
+            "invalid": ["hey", "wait", "hullo world"],
+            "gree_expression": r"^\S*o\S*$"
+        }
     ]
 
 for dic in listofdics:
     gree_expression_X = generate_gree_expression(dic["valid"], dic["invalid"])
-    print("Generated Gree expression:", gree_expression_X)  
+    print("Generated Gree expression:", gree_expression_X) 
